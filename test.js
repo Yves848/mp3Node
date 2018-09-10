@@ -1,18 +1,26 @@
-const NodeID3 = require("node-id3");
-const axios = require("axios");
-const fs    = require( 'fs' );
+const NodeID3 = require('node-id3');
+const axios = require('axios');
+const fs = require('fs');
+const path = require('path');
+
+const _tempDir = path.join(__dirname,'/temp');
+const _mp3Dir = path.join(__dirname,'/mp3');
+
+console.log(_tempDir)
+
 
 /* ============================================================
     Function: Download Image
 ============================================================ */
 
-const download_image = ( url, image_path ) => axios( { 'url' : url, 'responseType' : 'stream' } ).then( response =>
-{
-    response.data.pipe( fs.createWriteStream( image_path ) );
+const download_image = (url, image_path) =>
+  axios({ url: url, responseType: 'stream' })
+    .then(response => {
+      response.data.pipe(fs.createWriteStream(image_path));
 
-    return { 'status' : true, 'error' : '' };
-
-}).catch( error => ( { 'status' : false, 'error' : 'Error: ' + error.message } ) );
+      return { status: true, error: '' };
+    })
+    .catch(error => ({ status: false, error: 'Error: ' + error.message }));
 
 /* ============================================================
     Download Images in Order
@@ -47,27 +55,27 @@ dosearch = key => {
 };
 searchImage = key => {
   return new Promise((resolve, reject) => {
-    var CSE_API_KEY = "007439388879951561867:3ragl0fkhpm";
-    var CSE_ID = "AIzaSyDYvQx76ZvFawwKOaDeGqRClb2RJlIcsXM";
+    var CSE_API_KEY = '007439388879951561867:3ragl0fkhpm';
+    var CSE_ID = 'AIzaSyDYvQx76ZvFawwKOaDeGqRClb2RJlIcsXM';
 
-    var parameters = "?q=" + encodeURIComponent(key);
-    parameters += "&cx=" + CSE_API_KEY;
-    parameters += "&imgSize=large";
-    parameters += "&searchType=image";
-    parameters += "&key=" + CSE_ID;
-    parameters += "&lr=lang_fr";
-    parameters += "&start=1";
+    var parameters = '?q=' + encodeURIComponent(key);
+    parameters += '&cx=' + CSE_API_KEY;
+    parameters += '&imgSize=large';
+    parameters += '&searchType=image';
+    parameters += '&key=' + CSE_ID;
+    parameters += '&lr=lang_fr';
+    parameters += '&start=1';
 
-    var path = "https://www.googleapis.com/customsearch/v1" + parameters;
+    var path = 'https://www.googleapis.com/customsearch/v1' + parameters;
     //console.log(path)
     axios.get(path).then(response => {
       //console.log(response);
       var images = response.data.items;
-      images.forEach((image,i) => {
+      images.forEach((image, i) => {
         _images.push({
           url: image.link,
           width: image.image.width,
-          height: image.image.height
+          height: image.image.height,
         });
       });
       resolve(_images);
@@ -75,19 +83,19 @@ searchImage = key => {
   });
 };
 
-let file = "./Axel Bauer & Zaziz - A ma place.mp3";
-let filebuffer = new Buffer("Some Buffer of a (mp3) file");
-let filepath = "./path/to/(mp3)file";
+let file = './Axel Bauer & Zaziz - A ma place.mp3';
+let filebuffer = new Buffer('Some Buffer of a (mp3) file');
+let filepath = './path/to/(mp3)file';
 
 let _tags;
 
 NodeID3.read(file, function(err, tags) {
-  tags.APIC = "./amaplace.jpg";
+  tags.APIC = './amaplace.jpg';
   _tags = tags;
   let success = NodeID3.update(_tags, file);
-  searchImage(tags.artist + " " + tags.title).then(images => {
-      images.forEach((image,i) => {
-        download_image(image.url,`${tags.title}${i}.jpg`);
-      })
+  searchImage(tags.artist + ' ' + tags.title).then(images => {
+    images.forEach((image, i) => {
+      download_image(image.url, `${tags.title}${i}.jpg`);
+    });
   });
 });
